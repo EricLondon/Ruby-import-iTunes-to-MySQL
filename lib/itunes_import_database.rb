@@ -6,7 +6,7 @@ module ItunesImport
 
     def initialize(params={})
 
-      params.each {|key,value| instance_variable_set("@db_#{key}", value) }
+      params.each {|key,value| instance_variable_set("@db_#{key}", value.to_s) }
 
       db_init
       ensure_database
@@ -18,17 +18,17 @@ module ItunesImport
     end
 
     def ensure_database
-      sql = "show databases like '#{@db_database}'"
-      raise "Database (#{@db_database}) does not exist" if @mysql.query(sql).map {|r| r}.size == 0
+      sql = "show databases like '#{@mysql.escape(@db_database)}'"
+      raise "Database (#{@mysql.escape(@db_database)}) does not exist" if @mysql.query(sql).map {|r| r}.size == 0
     end
 
     def ensure_table
 
-      sql = "show tables in #{@db_database} like '#{@db_table}'"
+      sql = "show tables in #{@mysql.escape(@db_database)} like '#{@mysql.escape(@db_table)}'"
       results = @mysql.query(sql).first
 
       if results.nil?
-        sql = "CREATE TABLE `#{@db_table}` (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT)"
+        sql = "CREATE TABLE `#{@mysql.escape(@db_table)}` (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT)"
         @mysql.query sql
       end
     end
@@ -36,13 +36,13 @@ module ItunesImport
     def ensure_columns(columns=[])
 
       # get a list of existing columns
-      sql = "show columns in #{@db_table}"
+      sql = "show columns in #{@mysql.escape(@db_table)}"
       existing_columns = @mysql.query(sql).map {|r| r['Field'] }
 
       # ensure columns exist
       columns.each do |column|
         unless existing_columns.include?(column)
-          sql = "ALTER TABLE #{@db_table} ADD `#{column}` VARCHAR(255)"
+          sql = "ALTER TABLE #{@mysql.escape(@db_table)} ADD `#{column}` VARCHAR(255)"
           @mysql.query sql
         end
       end
@@ -54,16 +54,16 @@ module ItunesImport
       sql_columns = row.keys.map {|k| "`#{k}`"}.join(', ')
       sql_values = row.values.map {|v| "'#{@mysql.escape(v.to_s[0..254])}'"}.join(', ')
 
-      sql = "insert into #{@db_table} (#{sql_columns}) values (#{sql_values})"
+      sql = "insert into #{@mysql.escape(@db_table)} (#{sql_columns}) values (#{sql_values})"
       @mysql.query sql
 
     end
 
     def truncate_table
-      sql = "select count(*) as `countX` from `#{@db_table}`"
+      sql = "select count(*) as `countX` from `#{@mysql.escape(@db_table)}`"
       return if @mysql.query(sql).first['countX'] == 0
 
-      sql = "truncate table `#{@db_table}`"
+      sql = "truncate table `#{@mysql.escape(@db_table)}`"
       @mysql.query sql
     end
 
