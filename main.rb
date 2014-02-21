@@ -28,7 +28,7 @@ options = {
 }
 
 # import XML library to MySQL
-#ItunesImport.import 'Library.xml', options
+ItunesImport.import 'Library.xml', options
 
 # query
 ItunesImport.albums_by_highest_average_rating
