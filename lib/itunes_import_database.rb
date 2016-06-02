@@ -1,12 +1,9 @@
 module ItunesImport
-
   class Database
-
     attr_reader :mysql
 
-    def initialize(params={})
-
-      params.each {|key,value| instance_variable_set("@db_#{key}", value.to_s) }
+    def initialize(params = {})
+      params.each { |key, value| instance_variable_set("@db_#{key}", value.to_s) }
 
       db_init
       ensure_database
@@ -19,11 +16,10 @@ module ItunesImport
 
     def ensure_database
       sql = "show databases like '#{@mysql.escape(@db_database)}'"
-      raise "Database (#{@mysql.escape(@db_database)}) does not exist" if @mysql.query(sql).map {|r| r}.size == 0
+      raise "Database (#{@mysql.escape(@db_database)}) does not exist" if @mysql.query(sql).map { |r| r }.empty?
     end
 
     def ensure_table
-
       sql = "show tables in #{@mysql.escape(@db_database)} like '#{@mysql.escape(@db_table)}'"
       results = @mysql.query(sql).first
 
@@ -33,11 +29,10 @@ module ItunesImport
       end
     end
 
-    def ensure_columns(columns=[])
-
+    def ensure_columns(columns = [])
       # get a list of existing columns
       sql = "show columns in #{@mysql.escape(@db_table)}"
-      existing_columns = @mysql.query(sql).map {|r| r['Field'] }
+      existing_columns = @mysql.query(sql).map { |r| r['Field'] }
 
       # ensure columns exist
       columns.each do |column|
@@ -46,17 +41,14 @@ module ItunesImport
           @mysql.query sql
         end
       end
-
     end
 
     def insert_row(row)
-
-      sql_columns = row.keys.map {|k| "`#{k}`"}.join(', ')
-      sql_values = row.values.map {|v| "'#{@mysql.escape(v.to_s[0..254])}'"}.join(', ')
+      sql_columns = row.keys.map { |k| "`#{k}`" }.join(', ')
+      sql_values = row.values.map { |v| "'#{@mysql.escape(v.to_s[0..254])}'" }.join(', ')
 
       sql = "insert into #{@mysql.escape(@db_table)} (#{sql_columns}) values (#{sql_values})"
       @mysql.query sql
-
     end
 
     def truncate_table
@@ -67,8 +59,7 @@ module ItunesImport
       @mysql.query sql
     end
 
-    def albums_by_highest_average_rating(limit=20)
-
+    def albums_by_highest_average_rating(limit = 20)
       sql = "
         select Artist, Album, Genre, Year, count(*) as `album_track_count`, avg(ifnull(Rating, 0)) as `average_rating`
         from tracks
@@ -78,12 +69,10 @@ module ItunesImport
         order by average_rating desc
         limit #{@mysql.escape(limit.to_s)}"
 
-      @mysql.query(sql).map {|result| result}
-
+      @mysql.query(sql).map { |result| result }
     end
 
-    def indie_albums_by_highest_average_rating(limit=20)
-
+    def indie_albums_by_highest_average_rating(limit = 20)
       sql = "
         select Artist, Album, Genre, Year, count(*) as `album_track_count`, avg(ifnull(Rating, 0)) as `average_rating`
         from tracks
@@ -93,10 +82,7 @@ module ItunesImport
         order by average_rating desc
         limit #{@mysql.escape(limit.to_s)}"
 
-      @mysql.query(sql).map {|result| result}
-
+      @mysql.query(sql).map { |result| result }
     end
-
   end
-
 end
