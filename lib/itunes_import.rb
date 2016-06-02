@@ -1,24 +1,18 @@
 module ItunesImport
-
   # init database
-  def self.init(db_params={})
-
+  def self.init(db_params = {})
     @db = Database.new db_params
-
   end
 
   # import XML Library into MySQL
-  def self.import(itunes_file=nil, options={})
-
+  def self.import(itunes_file = nil, options = {})
     # ensure db connection
-    raise "Database connection required." if @db.nil?
+    raise 'Database connection required.' if @db.nil?
 
     @itunes_file = itunes_file
     ensure_file
 
-    if options.has_key?(:truncate) && options[:truncate]==true
-      @db.truncate_table
-    end
+    @db.truncate_table if options.key?(:truncate) && options[:truncate] == true
 
     load_library
 
@@ -26,44 +20,40 @@ module ItunesImport
   end
 
   # query
-  def self.albums_by_highest_average_rating(limit=20)
-    puts "# Albums by highest average rating:"
+  def self.albums_by_highest_average_rating(limit = 20)
+    puts '# Albums by highest average rating:'
     output_results_hash @db.albums_by_highest_average_rating limit
     puts "\n"
   end
 
   # query
-  def self.indie_albums_by_highest_average_rating(limit=20)
-    puts "# Indie Albums by highest average rating:"
+  def self.indie_albums_by_highest_average_rating(limit = 20)
+    puts '# Indie Albums by highest average rating:'
     output_results_hash @db.indie_albums_by_highest_average_rating limit
     puts "\n"
   end
 
   class << self
-
     private
 
     def ensure_file
-      raise "File (#{@itunes_file}) does not exist" unless File.exists?(@itunes_file)
+      raise "File (#{@itunes_file}) does not exist" unless File.exist?(@itunes_file)
     end
 
     def load_library
-      @library = Plist::parse_xml @itunes_file
+      @library = Plist.parse_xml @itunes_file
     end
 
     def import_library
+      raise 'Library not loaded' if @library.nil?
 
-      raise "Library not loaded" if @library.nil?
-
-      @library['Tracks'].each do |key,row|
+      @library['Tracks'].each do |_key, row|
         @db.ensure_columns row.keys
         @db.insert_row row
       end
-
     end
 
-    def output_results_hash(data=[])
-
+    def output_results_hash(data = [])
       # max length for each column
       max_lengths = {}
       data.first.keys.each do |column|
@@ -73,20 +63,15 @@ module ItunesImport
       end
 
       data.each_with_index do |row, index|
-
         # first row
         if index == 0
-          row.each {|key, value| printf "%-#{max_lengths[key]+1}s", key }
+          row.each { |key, _value| printf "%-#{max_lengths[key] + 1}s", key }
           puts "\n"
         end
 
-        row.each {|key, value| printf "%-#{max_lengths[key]+1}s", value }
+        row.each { |key, value| printf "%-#{max_lengths[key] + 1}s", value }
         puts "\n"
-
       end
-
     end
-
   end
-
 end

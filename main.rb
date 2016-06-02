@@ -5,7 +5,7 @@ require 'mysql2'
 require 'plist'
 
 # include path
-$:.unshift File.dirname(__FILE__) + '/lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/lib'
 
 # require lib
 require 'itunes_import_database'
@@ -17,7 +17,7 @@ db_params = {
   username: 'itunes_import',
   password: 'itunes_import',
   database: 'itunes_import',
-  table: 'tracks',
+  table: 'tracks'
 }
 
 # initialize db
@@ -31,7 +31,7 @@ options = {
 ItunesImport.import 'Library.xml', options
 
 # query
-#ItunesImport.albums_by_highest_average_rating
+# ItunesImport.albums_by_highest_average_rating
 
 # query
-#ItunesImport.indie_albums_by_highest_average_rating
+# ItunesImport.indie_albums_by_highest_average_rating
