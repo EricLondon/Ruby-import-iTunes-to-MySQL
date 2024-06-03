@@ -6,7 +6,7 @@ GEM
     parallel (1.11.2)
     parser (2.4.0.0)
       ast (~> 2.2)
-    plist (3.3.0)
+    plist (3.7.1)
     powerpack (0.1.1)
     rainbow (2.2.2)
       rake
